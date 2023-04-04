@@ -1,31 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   quit.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vfaramel <vfaramel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/30 18:12:40 by vfaramel          #+#    #+#             */
-/*   Updated: 2023/04/03 00:18:58 by vfaramel         ###   ########.fr       */
+/*   Created: 2023/04/03 14:52:43 by vfaramel          #+#    #+#             */
+/*   Updated: 2023/04/04 01:47:55 by vfaramel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#include "pipex.h"
 
-# include <stdio.h>
-# include <unistd.h>
-# include <stdlib.h>
-# include <fcntl.h>
-# include <sys/wait.h>
-# include <errno.h>
-# include <string.h>
-# include "libft/libft.h"
-
-typedef struct	s_file
+void	quit(t_file *file_1, t_file *file_2)
 {
-	int		fd;
-	char	**cmd;
-} t_file;
+	int	i;
 
-#endif
+	i = 0;
+	while (file_1->cmd[i])
+		free(file_1->cmd[i++]);
+	free(file_1->cmd);
+	free(file_1->cmd_file);
+	free(file_1);
+	i = 0;
+	while (file_2->cmd[i])
+		free(file_2->cmd[i++]);
+	free(file_2->cmd);
+	free(file_2);
+}

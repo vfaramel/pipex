@@ -6,25 +6,37 @@
 /*   By: vfaramel <vfaramel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 14:52:43 by vfaramel          #+#    #+#             */
-/*   Updated: 2023/04/04 01:47:55 by vfaramel         ###   ########.fr       */
+/*   Updated: 2023/04/27 04:45:16 by vfaramel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	quit(t_file *file_1, t_file *file_2)
+void	quit(t_parameters *parameters)
 {
 	int	i;
+	int	j;
 
 	i = 0;
-	while (file_1->cmd[i])
-		free(file_1->cmd[i++]);
-	free(file_1->cmd);
-	free(file_1->cmd_file);
-	free(file_1);
+	while (parameters->commands[i] != 0)
+	{
+		j = 0;
+		while (parameters->commands[i][j])
+		{
+			if (i == 0 && parameters->commands[i][j + 1] == 0)
+				break ;
+			free(parameters->commands[i][j++]);
+		}
+		free(parameters->commands[i++]);
+	}
+	free(parameters->commands);
 	i = 0;
-	while (file_2->cmd[i])
-		free(file_2->cmd[i++]);
-	free(file_2->cmd);
-	free(file_2);
+	while (parameters->paths[i] != 0)
+		free(parameters->paths[i++]);
+	free(parameters->paths);
+	i = 0;
+	while (parameters->pipes[i])
+		free(parameters->pipes[i++]);
+	free(parameters->pipes);
+	free(parameters);
 }

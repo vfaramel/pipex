@@ -6,7 +6,7 @@
 /*   By: vfaramel <vfaramel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/30 03:15:59 by vfaramel          #+#    #+#             */
-/*   Updated: 2023/04/21 00:05:30 by vfaramel         ###   ########.fr       */
+/*   Updated: 2023/04/27 04:52:55 by vfaramel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,150 +35,85 @@ char	**find_path(char **envp)
 	int		i;
 	char	*arr;
 	char	**paths;
+	char	**paths_slash;
 
 	i = 0;
 	while (ft_strncmp(envp[i], "PATH=", 5))
 		i++;
 	arr = ft_substr(envp[i], 6, ft_strlen(envp[i]));
 	paths = ft_split(arr, ':');
+	free(arr);
+	i = 0;
+	while (paths[i])
+		i++;
+	paths_slash = malloc((i + 1) * sizeof(char *));
 	i = -1;
 	while (paths[++i] != 0)
-		ft_strlcat(paths[i], "/", ft_strlen(paths[i]) + 2);
-	return (paths);
-}
-
-void	execute(int *pipe, char **argv, char **envp, char **path)
-{
-	int		x;
-	int		filein;
-	char	**cmd;
-	char	*try;
-
-	x = 0;
-	cmd = ft_split(argv[2], ' ');
-	filein = open(argv[1], O_RDONLY);
-	if (0 > dup2(pipe[1], STDOUT_FILENO) || 0 > dup2(filein, STDIN_FILENO))
-		perror("Fork one");
-	close(pipe[0]);
-	while (path[x] != 0)
 	{
-		try = ft_strjoin(path[x], argv[2][0]);
-		if (execve(try, cmd, envp) != -1)
-		{
-			free(try);
-			exit(EXIT_SUCCESS);
-		}
-		free(try);
-		x++;
+		paths_slash[i] = ft_strjoin(paths[i], "/");
+		free(paths[i]);
 	}
-	exit(EXIT_FAILURE);
-	// int		i;
-	// char	*cmd;
-	// char	**path;
-
-	// i = 0;
-	// path = find_path(envp);
-	// if (0 > dup2(pipe[1], STDOUT_FILENO) || 0 > dup2(file_1->fd, STDIN_FILENO))
-	// 	perror("Fork one");
-	// close(pipe[0]);
-	// while (path[i] != 0)
-	// {
-	// 	cmd = ft_strjoin(path[i], file_1->cmd_file[0]);
-	// 	if (execve(cmd, file_1->cmd_file, envp) != -1)
-	// 	{
-	// 		free(path);
-	// 		free(cmd);
-	// 		exit(EXIT_SUCCESS);
-	// 	}
-	// 	free(cmd);
-	// 	i++;
-	// }
-	// free(path);
-	// exit(EXIT_FAILURE);
+	paths_slash[i] = 0;
+	free(paths);
+	return (paths_slash);
 }
 
-void	cmd_2(int *pipe, t_file *file_2, char**envp)
+void	get_commands(char **argv, int argc, t_parameters *parameters)
 {
 	int		i;
-	char	*cmd;
-	char	**path;
 
-	i = 0;
-	path = find_path(envp);
-	dup2(file_2->fd, STDOUT_FILENO);
-	if (0 > dup2(pipe[0], STDIN_FILENO))
-		perror("Fork one");
-	close(pipe[1]);
-	while (path[i] != 0)
-	{
-		cmd = ft_strjoin(path[i], file_2->cmd[0]);
-		if (execve(cmd, file_2->cmd, envp) != -1)
-		{
-			free(path);
-			free(cmd);
-			exit(EXIT_SUCCESS);
-		}
-		free(cmd);
-		i++;
-	}
-	free(path);
-	exit(EXIT_FAILURE);
+	i = -1;
+	parameters->commands = malloc((argc - 2) * sizeof(char **));
+	while (++i < argc - 3)
+		parameters->commands[i] = ft_split(argv[i + 2], ' ');
+	parameters->commands[i] = 0;
+	parameters->commands[0] = add_file(parameters->commands[0], argv[1]);
+	parameters->input = argv[0];
+	parameters->output = argv[argc - 1];
 }
 
-void	first_pipe(int *pipe, char **argv, char **envp, char **path)
+void	init_parameters(t_parameters *parameters,
+char **argv, int argc, char **envp)
 {
-	int		x;
-	int		filein;
-	char	**cmd;
-	char	*try;
-
-	x = 0;
-	cmd = ft_split(argv[2], ' ');
-	cmd = add_file(cmd, argv[1]);
-	filein = open(argv[1], O_RDONLY);
-	if (0 > dup2(pipe[1], STDOUT_FILENO) || 0 > dup2(filein, STDIN_FILENO))
-		perror("Fork one");
-	close(pipe[0]);
-	while (path[x] != 0)
-	{
-		try = ft_strjoin(path[x], argv[2][0]);
-		if (execve(try, cmd, envp) != -1)
-		{
-			free(try);
-			exit(EXIT_SUCCESS);
-		}
-		free(try);
-		x++;
-	}
-	exit(EXIT_FAILURE);
+	parameters->paths = find_path(envp);
+	get_commands(argv, argc, parameters);
+	parameters->pipes = init_pipes(argc - 4);
+	parameters->envp = envp;
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	int		fileout;
-	int		**pipes;
-	int		i;
-	char	**path;
+	int				i;
+	t_parameters	*parameters;
 
-	if (argc != 5)
+	if (argc < 5)
 		return (0);
-	path = find_path(envp);
-	pipes = init_pipes(argc - 4);
-	fileout = open(argv[4], O_RDWR, O_TRUNC, O_CREAT);
-	x = fork();
-	if (x < 0)
-		perror("Fork one");
-	if (!x)
+	parameters = malloc(sizeof(t_parameters));
+	init_parameters(parameters, argv, argc, envp);
+	i = -1;
+	while (++i < argc - 3)
 	{
-		pipe(pipes[0]);
-		first_pipe(pipes[0], argv, envp, path);
+		if (i < argc - 4)
+			pipe(parameters->pipes[i]);
+		if (fork() == 0)
+		{
+			if (i < argc - 4)
+				close(parameters->pipes[i][0]);
+			if (i == 0)
+				first_cmd(parameters, i);
+			else if (i == argc - 4)
+				last_cmd(parameters, i);
+			else
+				run_cmds(parameters, i);
+		}
+		else
+		{
+			if (i < argc - 4)
+				close(parameters->pipes[i][1]);
+			if (i > 1)
+				close(parameters->pipes[i - 1][0]);
+		}
 	}
-	wait(NULL);
-	i = 1
-	while (i < argc - 4)
-	{
-		execute();
-	}
-	use_pipe(file_1, file_2, envp);
-	return (0);
+	quit(parameters);
+	exit(0);
 }

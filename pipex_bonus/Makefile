@@ -1,4 +1,4 @@
-SRCS	=	main.c quit.c init_pipes.c run_cmds.c
+SRCS	=	main.c quit.c init_pipes.c run_cmds.c get_next_line/get_next_line_bonus.c get_next_line/get_next_line_utils_bonus.c
 OBJS	=	$(SRCS:.c=.o)
 CFLAGS	=	-Wall -Wextra -Werror -I.
 CC		= gcc

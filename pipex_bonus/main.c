@@ -6,29 +6,11 @@
 /*   By: vfaramel <vfaramel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/30 03:15:59 by vfaramel          #+#    #+#             */
-/*   Updated: 2023/04/27 04:52:55 by vfaramel         ###   ########.fr       */
+/*   Updated: 2023/05/17 23:47:35 by vfaramel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-
-char	**add_file(char **cmd, char *argv)
-{
-	int		i;
-	char	**new_split;
-
-	i = 0;
-	while (cmd[i] != 0)
-		i++;
-	new_split = malloc((i + 2) * sizeof(char *));
-	i = -1;
-	while (cmd[++i] != 0)
-		new_split[i] = cmd[i];
-	new_split[i++] = argv;
-	new_split[i] = 0;
-	free(cmd);
-	return (new_split);
-}
 
 char	**find_path(char **envp)
 {
@@ -67,8 +49,7 @@ void	get_commands(char **argv, int argc, t_parameters *parameters)
 	while (++i < argc - 3)
 		parameters->commands[i] = ft_split(argv[i + 2], ' ');
 	parameters->commands[i] = 0;
-	parameters->commands[0] = add_file(parameters->commands[0], argv[1]);
-	parameters->input = argv[0];
+	parameters->input = argv[1];
 	parameters->output = argv[argc - 1];
 }
 
@@ -100,7 +81,12 @@ int	main(int argc, char **argv, char **envp)
 			if (i < argc - 4)
 				close(parameters->pipes[i][0]);
 			if (i == 0)
-				first_cmd(parameters, i);
+			{
+				if (0 == ft_strncmp(parameters->input, "here_doc", 9))
+					exit(0);
+				else
+					first_cmd(parameters, i);
+			}
 			else if (i == argc - 4)
 				last_cmd(parameters, i);
 			else
@@ -108,6 +94,11 @@ int	main(int argc, char **argv, char **envp)
 		}
 		else
 		{
+			if (i == 0)
+			{
+				if (0 == ft_strncmp(parameters->input, "here_doc", 9))
+					here_doc(parameters, i);
+			}
 			if (i < argc - 4)
 				close(parameters->pipes[i][1]);
 			if (i > 1)

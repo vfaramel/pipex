@@ -6,7 +6,7 @@
 /*   By: vfaramel <vfaramel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/27 02:29:50 by vfaramel          #+#    #+#             */
-/*   Updated: 2023/04/27 04:14:07 by vfaramel         ###   ########.fr       */
+/*   Updated: 2023/05/18 00:28:10 by vfaramel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,20 @@ void	execute(t_parameters *parameters, int cmd)
 		i++;
 	}
 	exit(EXIT_FAILURE);
+}
+
+void	here_doc(t_parameters *parameters, int cmd)
+{
+	char	*arr;
+
+	arr = get_next_line(STDIN_FILENO);
+	write(parameters->pipes[cmd][1], arr, ft_strlen(arr));
+	while (ft_strncmpnl(parameters->commands[cmd][0], arr,
+		ft_strlen(parameters->commands[cmd][0]) + 1))
+	{
+		arr = get_next_line(STDIN_FILENO);
+		write(parameters->pipes[cmd][1], arr, ft_strlen(arr));
+	}
 }
 
 void	first_cmd(t_parameters *parameters, int cmd)
